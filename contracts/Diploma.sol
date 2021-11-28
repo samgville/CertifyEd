@@ -1,21 +1,22 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.3.2/contracts/token/ERC721/ERC721.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.3.2/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import "@openzeppelin/contracts//token/ERC721/ERC721.sol";
 
+contract CertificateCreator is ERC721Enumerable , Ownable   {
 
+  address internal CertificateContractCreatorsAddress;
+  uint internal cost;
 
-contract CertificateCreator is ERC721 {
 /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  * @notice Store the information about the certificate 
+  * @param course_name: Name of the course related to the certificate
+  * @param student: Student who took the course
+  * @param score: If required the final score of the student who took the course
+  * @param certificate_type: Different types of Certifications for Combining, Pricing, etc.
+  * @param course_creator: The creator of the course 
   *
  */
   struct Certificate {
@@ -24,247 +25,228 @@ contract CertificateCreator is ERC721 {
     uint8 score;
     string certificate_type;
     address course_creator;
+    uint cost;
   }
   
-  /**
-   *
-   *
-   *
-   */
+  //Complete list of certificates
   Certificate[] public certificates;
 
-   //Mappings
-    mapping(bytes32 => string) public requestToCharacterName;
-    mapping(bytes32 => address) requestToSender;
-    mapping(bytes32 => uint256) requestToTokenId;
-
-
+  //Mappings
+  mapping (uint => address) public certificateToOwner;
+  mapping (uint => address) public certificateToCourseCreator;
+  mapping (address => uint) courseCertificateCount;
   //Events
-  
+  event createdCertificate(string message);
 
-  /**
-  * Store the information about the certificate
-  * @param  : 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
-  *
- */
- 
-  constructor() public 
+  
+  // Constructor for the ERC721 
+  constructor(address _CertificateContractCreatorsAddress)  
   ERC721("CertifiedDiploma", "CRTD")
   {
+    CertificateContractCreatorsAddress = _CertificateContractCreatorsAddress;
 
   }
 
   /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  *  @notice Mints a certificate into the Student's address
+  *  @param _courseName The name of the course
+  *  @param _course_creator the creator of the course
+  *  @param _certificateType the type of certificate
   *
  */
 
-  function createCertificate(string _courseName, address _course_creator, string _certificateType ) public payable {
+  function createCertificate(string memory _courseName, address _course_creator, string memory _certificateType) public payable {
         
+        require(msg.value == cost);
         address student = msg.sender;
-        uint newId = certificates.length++;
+        uint newId = certificates.length;
+        certificateToOwner[newId] = msg.sender;
+        //link certificates to the course creators 
+        certificateToCourseCreator[newId] = _course_creator;
+        courseCertificateCount[_course_creator]++;
 
         Certificate memory certificate = Certificate (
           _courseName,
           student,
+          0,
           _certificateType,
-          _course_creator
+          _course_creator,
+          cost
         );
+
         certificates.push(certificate);
-       if (_safeMint(requestToSender[requestId], newId)){
-        emit requestedCharacter(requestId);
-        }
+        _safeMint( student , newId);
+        emit createdCertificate("New certificate made from combining two certificates");
+        
   }
 
   /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  *  @notice Returns the list of TokenIDs from an owner
+  *  @param _owner Students Address
   *
  */
-  function getCertificatesFromOwner(address _owner) public {
+  function getCertificatesFromOwner(address _owner) external view returns (uint[] memory) {
+    uint256 ownerCertificateCounts = this.balanceOf( _owner );
+    uint256[] memory certificateIds = new uint256[](ownerCertificateCounts);
+    for (uint256 i; i < ownerCertificateCounts; i++) {
+      certificateIds[i] = this.tokenOfOwnerByIndex(_owner, i);
+    }
+    return certificateIds;
 
   }
-
+  
   /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  *  @notice Combines two certificates to generate a new certificate with 
+  *          the data from the parent's certificate
+  *  @param _certificate1 Certificate 1 id
+  *  @param _certificate2 Certificate 2
   *
- */
-
+  */
   function combineCertificates(uint _certificate1, uint _certificate2) public {
-    
 
     Certificate memory certificate1 = certificates[_certificate1];
     Certificate memory certificate2 = certificates[_certificate2];
     
-    require( _isApprovedOrOwner( msg.sender , tokenId ) , 'You can only combine certificates you own' );
+    address requester = msg.sender;
+
+    require( _isApprovedOrOwner( requester , _certificate1  ) || _isApprovedOrOwner( requester , _certificate2  )  , "You can only combine certificates you own" );
 
     require(certificate1.course_creator == certificate2.course_creator , "You can only combine certificates from one creator");
 
     address student = msg.sender;
     
     address courseCreator = certificate1.course_creator;
-    uint newId = certificates.length++;
+    uint newId = certificates.length;
+
+    string memory newCourseName = string(abi.encodePacked("Name(", certificate1.course_name , " + ", certificate2.course_name, ")"));
+    string memory newType = string(abi.encodePacked("Type(", certificate1.certificate_type , " + ", certificate2.certificate_type, ")"));
 
 
-   
-    string  newCourseName = "(" + certificate1.course_name + " + " + certificate2.course_name + ")" ;
-    string  newType = "Type: " + certificate1.certificate_type + " + " + certificate2.certificate_type ;
-
+    certificateToOwner[newId] = msg.sender;
+    certificateToCourseCreator[newId] = courseCreator;
+    
+    //link certificates to the course creators 
+    courseCertificateCount[courseCreator]++;
      Certificate memory certificate = Certificate (
           newCourseName,
           student,
+          0,
           newType,
-          courseCreator
+          courseCreator,
+          0
         );
         certificates.push(certificate);
-       if (_safeMint(student, newId)){
-      //  emit requestedCharacter(requestId);
-        }
+        _safeMint(student, newId);
+        emit createdCertificate("New certificate made from combining two certificates");
+        
 
   }
-    /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+
+  /**
+  *  @notice Sets the score for a specific certificate student, can only be called by the Course Creator
+  *  @param _certificateId Certificate ID
   *
  */
 
-  function setScoreToCertificate(uint _certificateId) public {
+  function setScoreToCertificate(uint _certificateId, uint8 _score) public view {
     //Only Course_creator
-    Certificate certificate = certificates[_certificateId];
-    require(msg.sender = Certificate( _certificate ).course_creator);
-    
+    Certificate memory certificate = certificates[_certificateId];
+    require( msg.sender == certificate.course_creator );
+    certificate.score = _score;
   }
 
   /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  *  @notice Returns the Score from a Certificate
+  *  @param _certificateId Certificate ID
   *
  */
 
-  function getScoreFromCertificate(address _certificate) public returns (uint8) {
-    
-  }
-
-/**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
-  *
- */
-
-  function getStudentFromCertificate(address _certificate) public {
-
+  function getScoreFromCertificate(uint _certificateId) public view returns (uint8) {
+    return uint8(certificates[_certificateId].score);
   }
 
   /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  *  @notice Returns the student from a Certificate 
+  *  @param _certificateId Certificate ID
   *
  */
-
-  function getCourseFromCertificate(address _certificate) public {
-
+  function getStudentFromCertificate(uint _certificateId) public view returns (uint256) {
+    return uint160(address(certificates[_certificateId].student));
   }
+  
+   /**
+  *  @notice Returns the course from a Certificate 
+  *  @param _certificateId Certificate ID
+  *
+ */
+  function getCourseFromCertificate(uint _certificateId) public view returns (string memory) {
+    return string(certificates[_certificateId].course_name);
+  }
+
 
   /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  *  @notice Returns the type from a Certificate 
+  *  @param _certificateId Certificate ID
   *
  */
-
-  function getTypeFromCertificate(address _certificate) public {
-
+  function getTypeFromCertificate(uint _certificateId) public view returns (string memory) {
+    return string(certificates[_certificateId].certificate_type);
   }
 
+    /**
+  *  @notice Returns the cost from a Certificate 
+  *  @param _certificateId Certificate ID
+  *
+ */
+  function getCostFromCertificate(uint _certificateId) public view returns (uint) {
+    return uint(certificates[_certificateId].cost);
+  }
   
 
   /**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
+  *  @notice List the certificate IDs from the course creator 
+  *  @param _courseCreatorAddress Course Creator Address
   *
  */
-
-  function payCourseCreator() public onlyOwner {
-
-  }
-
-/**
-  * Store the information about the certificate
-  * @attributes: 
-  * -course_name: Name of the course related to the certificate
-  * -student: Student who took the course
-  * -score: If required the final score of the student who took the course
-  * -certificate_type: Different types of Certifications for Combining, Pricing, etc.
-  * -course_creator: The creator of the course 
-  *  
-  *
- */
-
-  function withdrawRoyalties() private onlyOwner {
-
+  function getCertificatesIDsFromCreator(address _courseCreatorAddress) onlyOwner internal view returns (uint[] memory)  {
+    
+    uint256[] memory result = new uint[](courseCertificateCount[_courseCreatorAddress]);
+    uint counter = 0;
+    for (uint i = 0; i < certificates.length; i++) {
+      if (certificateToCourseCreator[i] == _courseCreatorAddress) {
+        result[counter] = i;
+        counter++;
+      }
+    }
+    return result;
   }
 
 
+    /**
+  *  @notice Pays the course creator with 90% of what's associated to the certificate from their courses
+  *  @param _courseCreatorAddress Course Creator Address
+  *
+ */
+  function payCourseCreator(address _courseCreatorAddress) onlyOwner public view onlyOwner {
+    uint256[] memory courseCertificatesFromCreators = getCertificatesIDsFromCreator( _courseCreatorAddress );
+    uint256 amount = 0;
+    for(uint i=0; i < courseCertificatesFromCreators.length; i++ ){
+      
+      amount = amount + getCostFromCertificate(courseCertificatesFromCreators[i]);
 
-} 
+    }
+  }
+
+  /**
+  *  @notice Sends the royalties to the contract creators
+  * 
+  *
+ */
+  function withdrawRoyalties() public onlyOwner {
+  
+    (bool hs, ) = payable(CertificateContractCreatorsAddress).call{value: address(this).balance }("");
+    require(hs);
+  }
+
+
+}
