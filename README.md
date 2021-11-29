@@ -62,3 +62,20 @@ Lastly, it might also be interesting to evaluate if a DAO structure would benefi
 
 ### Website and dApp
 https://certifyed.webflow.io/
+
+### Use the code to improve it
+Clone the Repository
+	`git clone https://github.com/samgville/CertifyEd.git`
+ Install node modules
+	`npm install`
+ Install Hardhat 
+  `npm hardhat install`
+  
+Create an .env file and add the information about the contractCreatorAddress for withdrawing royalties.
+
+Run it and change it however you want to improve it!
+
+### Pending Implementations
+- Pending implementation of a fixed point math library to calculate royalties and payments for course creators
+- Pending Implementation of a way for setting up costs on specific courses, perhaps that could be handled on the dApp
+  
