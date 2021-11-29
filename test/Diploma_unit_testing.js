@@ -15,60 +15,52 @@ describe('Diploma Certificate Unit Tests', function() {
     });
 
     it('Should create a certificate with the set information', async function () {
-        createCertificate
-
-          expect(await diploma.connect(owner).createCertificate(PARAMs)).to.be.;
+        //TODO: Finish tests implementation
+          expect(await diploma.connect(owner).createCertificate());
         });
 
-    it('Should return the Certificates from an Address', async function () {
-        getCertificatesFromOwner
-
-      expect(await cryptoBabiesGenesis.connect(account1).requestCreation(0)).to.be.reverted;
+    it('Should return the list Certificates from an Address', async function () {
+       // getCertificatesFromOwner
+       //TODO: Finish tests implementation
         });
 
     it('Should combine two certificates and create a new one', async function () {
-        combineCertificates
-        await cryptoBabiesGenesis.setCost(100);
-        expect(await cryptoBabiesGenesis.connect(account1).requestCreation(1)).to.be.reverted;
+        // combineCertificates
+        //TODO: Finish tests implementation
 
     });
-    it('Should not allow to mint when value is not as high as cost', async function () {
-        getScoreFromCertificate
-        await cryptoBabiesGenesis.setCost(100);
-        expect(await cryptoBabiesGenesis.connect(account1).requestCreation(1)).to.be.reverted;
+    it('Should return the score from a certificate', async function () {
+        // getScoreFromCertificate
+        //TODO: Finish tests implementation
 
     });
-    it('Should not allow to mint when value is not as high as cost', async function () {
-        getStudentFromCertificate
-        await cryptoBabiesGenesis.setCost(100);
-        expect(await cryptoBabiesGenesis.connect(account1).requestCreation(1)).to.be.reverted;
+    it('Should return the student from a certificate', async function () {
+        //getStudentFromCertificate
+        //TODO: Finish tests implementation
 
     });
-    it('Should not allow to mint when value is not as high as cost', async function () {
-        getCourseFromCertificate
-        await cryptoBabiesGenesis.setCost(100);
-        expect(await cryptoBabiesGenesis.connect(account1).requestCreation(1)).to.be.reverted;
+    it('Should return the course from a certificate', async function () {
+        // getCourseFromCertificate
+        //TODO: Finish tests implementation
 
     });
-    it('Should not allow to mint when value is not as high as cost', async function () {
-        getTypeFromCertificate
-        await cryptoBabiesGenesis.setCost(100);
-        expect(await cryptoBabiesGenesis.connect(account1).requestCreation(1)).to.be.reverted;
+    it('Should return the type from a certificate', async function () {
+        // getTypeFromCertificate
+        //TODO: Finish tests implementation
 
     });
-    it('Should not allow to mint when value is not as high as cost', async function () {
-        payCourseCreator
-        await cryptoBabiesGenesis.setCost(100);
-        expect(await cryptoBabiesGenesis.connect(account1).requestCreation(1)).to.be.reverted;
+    it('Should pay the course creator', async function () {
+        // payCourseCreator
+        //TODO: Finish tests implementation
+        
 
     });
-    it('Should change the cost of the tokens', async function () {
-
-        withdrawRoyalties
-          await cryptoBabiesGenesis.setCost(1);
-          let object = await cryptoBabiesGenesis.getCost();
-          console.log(Object.values(object));
-          expect(object).to.equal(1);
+    it('Should withdraw royalties to contract creators', async function () {
+        //withdrawRoyalties
+        //TODO: Finish tests implementation
+        
+          await diploma.withdrawRoyalties();
+          expect(await diploma.connect(account1).withdrawRoyalties()).to.be.reverted;
 
     });
   });

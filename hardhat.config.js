@@ -1,18 +1,16 @@
 require("@nomiclabs/hardhat-waffle")
 require("@nomiclabs/hardhat-ethers")
+require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-truffle5")
-
-
-/**require('dotenv').config()
+require('dotenv').config()
 
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || process.env.ALCHEMY_MAINNET_RPC_URL || "https://eth-mainnet.alchemyapi.io/v2/your-api-key"
 const RINKEBY_RPC_URL = process.env.RINKEBY_RPC_URL || "https://eth-rinkeby.alchemyapi.io/v2/your-api-key"
-const KOVAN_RPC_URL = process.env.KOVAN_RPC_URL || "https://eth-kovan.alchemyapi.io/v2/your-api-key"
 const MUMBAI_RPC_URL = process.env.MUMBAI_RPC_URL || "https://polygon-mumbai.alchemyapi.io/v2/your-api-key"
 const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL || "https://polygon-mainnet.alchemyapi.io/v2/your-api-key"
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY 
 // optional
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "your private key"
-*/
 
 module.exports = {
     defaultNetwork: "hardhat",
@@ -25,22 +23,16 @@ module.exports = {
         },
         localhost: {
         },
-       // kovan: {
-           /// url: KOVAN_RPC_URL,
-           //  accounts: [PRIVATE_KEY],
-            //accounts: {
-           //     mnemonic: MNEMONIC,
-           // },
-          //  saveDeployments: true,
-       // },
-       // rinkeby: {
-           // url: RINKEBY_RPC_URL,
-            // accounts: [PRIVATE_KEY],
-          //  accounts: {
-            //    mnemonic: MNEMONIC,
-         //   },
-//saveDeployments: true,
-        //},
+        rinkeby: {
+            url: RINKEBY_RPC_URL,
+            accounts: [PRIVATE_KEY],
+         saveDeployments: true,
+        },
+        mumbai: {
+          url: MUMBAI_RPC_URL,
+          accounts: [PRIVATE_KEY],
+       saveDeployments: true,
+      },
         
     },
     namedAccounts: {
@@ -52,6 +44,11 @@ module.exports = {
             default: 1
         }
     },
+    etherscan: {
+        // Your API key for Etherscan
+        // Obtain one at https://etherscan.io/
+        apiKey: ETHERSCAN_API_KEY
+      },
     solidity: {
         compilers: [
             {

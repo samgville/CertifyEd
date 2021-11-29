@@ -2,8 +2,8 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "@openzeppelin/contracts//token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CertificateCreator is ERC721Enumerable , Ownable   {
 
@@ -86,10 +86,10 @@ contract CertificateCreator is ERC721Enumerable , Ownable   {
   *
  */
   function getCertificatesFromOwner(address _owner) external view returns (uint[] memory) {
-    uint256 ownerCertificateCounts = this.balanceOf( _owner );
+    uint256 ownerCertificateCounts = balanceOf( _owner );
     uint256[] memory certificateIds = new uint256[](ownerCertificateCounts);
     for (uint256 i; i < ownerCertificateCounts; i++) {
-      certificateIds[i] = this.tokenOfOwnerByIndex(_owner, i);
+      certificateIds[i] = tokenOfOwnerByIndex(_owner, i);
     }
     return certificateIds;
 
