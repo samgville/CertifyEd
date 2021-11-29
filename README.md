@@ -61,3 +61,4 @@ Lastly, it might also be interesting to evaluate if a DAO structure would benefi
 0x9446fC442d6aB4389D5804e0639da0261404EE63
 
 ### Website and dApp
+https://certifyed.webflow.io/
