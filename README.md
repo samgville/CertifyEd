@@ -39,9 +39,6 @@ Currently, there is an unsolved challenge in the project, as the current code is
 
 Another challenge I ran into, was that two of the course creators mentioned they did not understand how the blockchain technology worked thus they were not sure if they would like to use this solution. Perhaps the focus should be first on course creators that give blockchain-related content and then migrate to non-blockchain-related content.
 
-### Accomplishments that we're proud of
-
-I'm proud of developing and deploying this project on my own because I learned a ton from blockchain technology, but I definitely need to build a team to make this project successful.
 
 ### What we learned
 
